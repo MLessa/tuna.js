@@ -1,0 +1,24 @@
+<threeDSDataCollectionFrame>
+
+    <div>
+        <iframe name=”ddc-iframe” height="1" width="1" style="display: none;">
+        </iframe>
+        <form id={state.threeDSFormID} target=”ddc-iframe” method="POST" action={props.deviceDataCollectionUrl}>
+            <input type="hidden" name="JWT" value={props.accessToken} />
+        </form>
+    </div>
+
+    <script>
+        export default {
+            onBeforeMount(props, state) {
+                state.threeDSFormID = `tdsf_${Math.random().toString(18).substring(2)}`;
+            },
+            onMounted(props, state) {
+                var form = document.querySelector(`#${state.threeDSFormID}`);
+                if (form)
+                    form.submit();
+            }
+        }
+
+    </script>
+</threeDSDataCollectionFrame>

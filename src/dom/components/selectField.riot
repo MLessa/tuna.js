@@ -1,0 +1,84 @@
+<installmentSelect>
+
+    <div class="tunaSelectBox">
+        <label if={props.title} class={props.titleClass}>{props.title}</label>
+        <select id={state.id} onchange={optionChanged} class={props.inputClass} disabled={state.disabled}
+            onfocus={selectFocus} onblur={selectBlur}>
+            <option each={ option in props.options } value={ option.key }>
+                { option.value }
+            </option>
+        </select>
+        <div class="tunaSelectUnderline"></div>
+    </div>
+
+    <script>
+        export default {
+            onBeforeMount(props, state) {
+                state.id = props.id || `sel_${Math.random().toString(18).substring(2)}`;
+                state.disabled = props.disabled;
+
+                state.onfocus = props.onfocus;
+                state.onblur = props.onblur;
+                state.onchange = props.onchange;
+            },
+            onMounted(props, state) {
+                this.update({
+                    value: props.options[0].key
+                });
+
+                this.toggleClassSelectFilled(document.getElementById(state.id));
+            },
+            optionChanged(e) {
+                this.update({
+                    value: e.target.value
+                });
+
+                this.toggleClassSelectFilled(e.target);
+
+                if (this.state.onchange)
+                    this.state.onchange(e);
+            },
+            focus() {
+                document.getElementById(this.state.id).focus();
+            },
+            getValue() {
+                if (this.state.disabled)
+                    return null;
+                return this.state.value;
+            },
+            setValue(value) {
+                this.update({
+                    value
+                });
+            },
+            setDisabled(disabled) {
+                this.update({
+                    disabled
+                });
+            },
+            isDisabled() {
+                return this.state.disabled;
+            },
+            selectFocus(e) {
+                e.target.closest('.tunaSelectBox').classList.add('tunaSelectFocus');
+
+                if (this.state.onfocus)
+                    this.state.onfocus(e);
+            },
+            selectBlur(e) {
+                e.target.closest('.tunaSelectBox').classList.remove('tunaSelectFocus');
+                this.toggleClassSelectFilled(e.target);
+
+                if (this.state.onblur)
+                    this.state.onblur(e);
+            },
+            toggleClassSelectFilled(input) {
+                if (input.value.length == 0)
+                    input.closest('.tunaSelectBox').classList.remove('tunaSelectFilled');
+                else
+                    input.closest('.tunaSelectBox').classList.add('tunaSelectFilled');
+            }
+        }
+    </script>
+
+</installmentSelect>

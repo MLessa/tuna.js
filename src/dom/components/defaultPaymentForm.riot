@@ -1,0 +1,200 @@
+<defaultPaymentForm>
+    <div class="tunaDefaultPaymentContainer">
+        <div class="defaultPaymentFormDiv">
+            <div id={state.savedCardDivID}>
+                <button class="addNewCard" type="button" onclick={useNewCard}>
+                    {props.options.newCardButtonTitle || "Add new"}
+                </button>
+
+                <div class="componentTitle">{props.options.savedCardBoxTitle || "Saved cards"}</div>
+
+                <div id="SAVED_CARDS" class="tunaFormField"></div>
+            </div>
+
+            <div id={state.newCardDivID} style="display: none;">
+                <button if={state.savedCardCount> 0} class="viewSavedCards" type="button" onclick={useSavedCards}>
+                    <span>{state.savedCardCount}</span>
+                    {props.options.savedCardButtonTitle || "Saved cards"}
+                </button>
+                <div class="componentTitle">{props.options.newCardBoxTitle || "New credit card"}</div>
+                <div class="addNewCardForm">
+                    <div id="CARD_HOLDER_NAME" class="tunaFormField"></div>
+                    <div id="CREDIT_CARD" class="tunaFormField"></div>
+                    <div class="tunaRow">
+                        <div id="VALIDITY" class="tunaFormField"></div>
+                        <div id="CREDIT_CARD_CVV" class="tunaFormField"></div>
+                    </div>
+                    <div id="SINGLE_USE_FIELD" class="tunaFormField"></div>
+                </div>
+            </div>
+
+            <div id="otherFields" style="display: none;">
+                <div id="tuna_customArea">
+                </div>
+
+                <div id="tuna_installmentDiv">
+                    <div class="componentTitle installmentTitle"></div>
+                    <div class="installmentItem">
+                        <div id="INSTALLMENT" class="tunaFormField"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="END_ORDER_BUTTON"></div>
+    </div>
+    <script>
+        export default {
+            onBeforeMount(props, state) {
+                state.newCardDivID = `nccard_${Math.random().toString(36).substring(7)}`;
+                state.savedCardDivID = `sccard_${Math.random().toString(36).substring(7)}`;
+                state.alreadyCreatedNewCardFields = false;
+                state.selectedPaymentMethodType = "creditCard";
+            },
+            createCustomArea(customArea) {
+                let containerDiv = document.createElement("div");
+
+                let titleDiv = document.createElement("div");
+                titleDiv.classList.add("componentTitle");
+                titleDiv.innerHTML = customArea.title;
+
+                containerDiv.appendChild(titleDiv);
+                document.getElementById("tuna_customArea").appendChild(containerDiv);
+
+                Object.entries(customArea.fields).forEach(field => {
+
+                    let pieceContainerDiv = document.createElement("div");
+                    pieceContainerDiv.classList.add("customAreaItem");
+
+                    let pieceDiv = document.createElement("div");
+                    pieceDiv.id = `carea_${Math.random().toString(36).substring(7)}`
+
+                    pieceContainerDiv.appendChild(pieceDiv);
+
+                    containerDiv.appendChild(pieceContainerDiv);
+
+                    let options = { ...field[1], resultingObject: customArea.resultingObject };
+                    this.props.pieceManager.createPiece(`#${pieceDiv.id}`, field[0], options);
+                });
+            },
+            async onMounted(props, state) {
+
+                let options = this.props.options;
+
+                if (!options.cardList)
+                    options.cardList = {};
+
+                let savedCardCount = await props.interfaceManager.useSavedCardSelector(
+                    "#SAVED_CARDS",
+                    options.cardList,
+                    "savedCard"
+                );
+
+                if (savedCardCount == 0) {
+                    document.getElementById(state.savedCardDivID).remove();
+                    this.useNewCard();
+                }
+
+                if (options.installment) {
+                    if (!options.installment.title)
+                        options.installment.title = "Installment";
+
+                    this.props.pieceManager.createPiece("#INSTALLMENT", "installment", options.installment);
+                    $(".defaultPaymentFormDiv .installmentTitle").text(options.installment.title);
+                } else {
+                    $("#tuna_installmentDiv").hide();
+                }
+
+                if (options.customAreas && Array.isArray(options.customAreas)) {
+                    options.customAreas.forEach(customArea => {
+                        this.createCustomArea(customArea);
+                    });
+                }
+
+                let buttonClickFunction;
+                let onClick;
+
+                if (options.button && options.button.onclick && typeof options.button.onclick === "function")
+                    onClick = options.button.onclick;
+
+                buttonClickFunction = _ => {
+                    if (onclick)
+                        onclick();
+                    if (options.checkoutAndPayConfig)
+                        props.interfaceManager.checkoutAndPay(state.selectedPaymentMethodType,
+                            options.checkoutAndPayConfig.totalPaymentAmount,
+                            options.checkoutAndPayConfig.paymentMethodAmount,
+                            options.checkoutAndPayConfig.callbackFunction);
+                    else
+                        props.interfaceManager.checkout(options.checkoutCallback);
+                }
+
+                if (!options.button)
+                    options.button = { onclick: buttonClickFunction };
+                else
+                    options.button.onclick = buttonClickFunction;
+
+                props.pieceManager.createPiece("#END_ORDER_BUTTON", "button", options.button);
+                this.update({
+                    savedCardCount
+                })
+
+                document.getElementById("otherFields").style.display = "block";
+            },
+            useSavedCards() {
+                document.getElementById(this.state.newCardDivID).style.display = "none";
+                document.getElementById(this.state.savedCardDivID).style.display = "block";
+
+                this.props.pieceManager.changeGroupEnableStatus("newCard", false);
+                this.props.pieceManager.changeGroupEnableStatus("savedCard", true);
+            },
+            useNewCard() {
+                this.props.interfaceManager.clearSavedCardSelector();
+
+                if (document.getElementById(this.state.savedCardDivID))
+                    document.getElementById(this.state.savedCardDivID).style.display = "none";
+                document.getElementById(this.state.newCardDivID).style.display = "block";
+
+                let options = this.props.options;
+
+                this.props.pieceManager.changeGroupEnableStatus("savedCard", false);
+
+                if (!this.state.alreadyCreatedNewCardFields) {
+
+                    if (!options.cardHolderName)
+                        options.cardHolderName = {};
+                    if (!options.cardHolderName.title)
+                        options.cardHolderName.title = "Cardholder name";
+
+                    this.props.pieceManager.createPiece("#CARD_HOLDER_NAME", "cardHolderName", options.cardHolderName, "newCard");
+
+                    if (!options.cardNumber)
+                        options.cardNumber = {};
+                    if (!options.cardNumber.title)
+                        options.cardNumber.title = "Card number";
+                    this.props.pieceManager.createPiece("#CREDIT_CARD", "cardNumber", options.cardNumber, "newCard");
+
+                    if (!options.cardValidity)
+                        options.cardValidity = {};
+                    if (!options.cardValidity.title)
+                        options.cardValidity.title = "Validity";
+                    this.props.pieceManager.createPiece("#VALIDITY", "cardValidity", options.cardValidity, "newCard");
+
+                    if (!options.cardCvv)
+                        options.cardCvv = {};
+                    if (!options.cardCvv.title)
+                        options.cardCvv.title = "CVV";
+                    this.props.pieceManager.createPiece("#CREDIT_CARD_CVV", "cardCvv", options.cardCvv, "newCard");
+
+                    if (!options.saveCard)
+                        options.saveCard = {};
+                    if (!options.saveCard.title)
+                        options.saveCard.title = "Save card";
+                    this.props.pieceManager.createPiece("#SINGLE_USE_FIELD", "saveCard", options.saveCard, "newCard");
+                    this.state.alreadyCreatedNewCardFields = true;
+                } else
+                    this.props.pieceManager.changeGroupEnableStatus("newCard", true);
+            }
+        }
+    </script>
+</defaultPaymentForm>

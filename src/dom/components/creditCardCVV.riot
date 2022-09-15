@@ -1,0 +1,45 @@
+<creditCardCVV>
+
+    <div id={state.inputContainerID}></div>
+
+    <script>
+        import formatedTextField from './formattedTextField.riot';
+        import * as riot from 'riot';
+        import { defaultInputMethods } from '../util.js';
+
+        import ErrorHandler from "../../support/errorHandler.js";
+
+        export default {
+            onMounted(props, state) {
+                let showCVVImage = props.showCVVImage;
+                if (showCVVImage === undefined)
+                    showCVVImage = true;
+
+                const inputComponent = riot.component(formatedTextField)(document.querySelector(`#${state.inputContainerID}`),
+                    {
+                        pattern: '9999',
+                        suffixImage: showCVVImage ? 'https://js.tuna.uy/img/card.svg' : '',
+                        suffixImageClass: 'defaultTunaCVVImage',
+                        ...props
+                    });
+
+                this.update({
+                    inputComponent
+                });
+            },
+            getValue() {
+                const { inputComponent } = this.state;
+                if (inputComponent.isDisabled())
+                    return null;
+
+                const value = inputComponent.getValue();
+
+                if (!value || value.toString().length < 3)
+                    throw new ErrorHandler("ERR:07", { fieldNames: "cardCvv" });
+
+                return value;
+            },
+            ...defaultInputMethods
+        }
+    </script>
+</creditCardCVV>

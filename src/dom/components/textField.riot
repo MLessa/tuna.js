@@ -1,0 +1,141 @@
+<textField>
+    <div class="tunaInputBox">
+        <div class="tunaInputWrapper">
+            <div class="tunaInputPrefix" if={state.prefixText || state.prefixImage}>
+                <span if={state.prefixText} class={state.prefixTextClass}>{state.prefixText}</span>
+                <img if={state.prefixImage} src={state.prefixImage} class={state.prefixImageClass}>
+            </div>
+            <div class="tunaInput">
+                <label if={props.title} class={props.titleClass}>{props.title}</label>
+                <input required="required" id={state.id} type="text" onfocus={inputFocus} onblur={inputBlur}
+                    oninput={onInput} value={state.value} autocomplete="{props.autocomplete || 'off'}"
+                    class={props.inputClass} placeholder={props.placeholder} disabled={state.disabled}>
+                </input>
+            </div>
+            <div class="tunaInputSuffix" if={state.suffixText || state.suffixImage}>
+                <span if={state.suffixText}>{state.suffixText}</span>
+                <img if={state.suffixImage} src={state.suffixImage} class={state.suffixImageClass}>
+            </div>
+        </div>
+        <div class="tunaInputUnderline"></div>
+        <span class={props.validationMessageClass || 'defaultTunaValidation' } if={props.allowValidationMessages &&
+            state.showValidationMessage}>{props.validationMessage || 'Please use a valid value'}</span>
+    </div>
+
+    <script>
+        export default {
+            onBeforeMount(props, state) {
+                state.id = props.id || `inp_${Math.random().toString(18).substring(2)}`;
+                state.disabled = props.disabled;
+                state.onfocus = props.onfocus;
+                state.onblur = props.onblur;
+                state.oninput = props.oninput;
+
+                state.prefixText = props.prefixText;
+                state.prefixTextClass = props.prefixTextClass;
+                state.prefixImage = props.prefixImage;
+                state.prefixImageClass = props.prefixImageClass;
+
+                state.suffixText = props.suffixText;
+                state.suffixTextClass = props.suffixTextClass;
+                state.suffixImage = props.suffixImage;
+                state.suffixImageClass = props.suffixImageClass;
+            },
+            onBeforeUpdate(props, state) {
+                let input = document.getElementById(this.state.id);
+                if (props.allowValidationMessages && state.showValidationMessage) {
+                    input.closest('.tunaInputBox').classList.add('tunaFieldError');
+                } else {
+                    input.closest('.tunaInputBox').classList.remove('tunaFieldError');
+                }
+            },
+            inputFocus(e) {
+                e.target.closest('.tunaInputBox').classList.add('tunaInputFocus');
+                if (this.state.onfocus)
+                    this.state.onfocus(e);
+            },
+            inputBlur(e) {
+                e.target.closest('.tunaInputBox').classList.remove('tunaInputFocus');
+                this.toggleClassInputFilled(e);
+                if (this.state.onblur)
+                    this.state.onblur(e);
+            },
+            onInput(e) {
+                this.toggleClassInputFilled(e);
+                this.update({
+                    value: e.target.value
+                });
+                if (this.state.oninput)
+                    this.state.oninput(e);
+            },
+            toggleClassInputFilled(e) {
+                if (e.target.value.length == 0) {
+                    e.target.closest('.tunaInputBox').classList.remove('tunaInputFilled');
+                } else {
+                    e.target.closest('.tunaInputBox').classList.add('tunaInputFilled');
+                }
+            },
+            focus() {
+                document.getElementById(this.state.id).focus();
+            },
+            getValue() {
+                if (this.state.disabled)
+                    return null;
+                return this.state.value;
+            },
+            setValue(value) {
+                this.update({
+                    value
+                });
+            },
+            clear() {
+                $(`#${this.state.id}`).val("");
+                this.update({
+                    value: null
+                });
+            },
+            setDisabled(disabled) {
+                this.update({
+                    disabled
+                });
+            },
+            isDisabled() {
+                return this.state.disabled;
+            },
+            showValidationMessage(value) {
+                this.update({
+                    showValidationMessage: value
+                });
+            },
+            updatePrefix(type, prefix, prefixClass) {
+                if (type === "text") {
+                    this.update({
+                        prefixText: prefix,
+                        prefixTextClass: prefixClass || this.state.prefixTextClass
+                    });
+                } else if (type === "image") {
+                    this.update({
+                        prefixImage: prefix,
+                        prefixImageClass: prefixClass || this.state.prefixImageClass
+                    });
+                }
+            },
+            updateSuffix(type, suffix, suffixClass) {
+                if (type === "text") {
+                    this.update({
+                        suffixText: suffix,
+                        suffixTextClass: suffixClass || this.state.suffixTextClass
+                    });
+                } else if (type === "image") {
+                    this.update({
+                        suffixImage: suffix,
+                        suffixImageClass: suffixClass || this.state.suffixImageClass
+                    });
+                }
+            }
+        }
+    </script>
+    <style>
+
+    </style>
+</textField>

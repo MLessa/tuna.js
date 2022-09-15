@@ -1,0 +1,30 @@
+<installmentSelect>
+
+    <div id={state.inputContainerID}></div>
+
+    <script>
+        import selectField from './selectField.riot';
+        import { defaultSelectMethods } from '../util.js';
+
+        import * as riot from 'riot';
+
+        export default {
+            onMounted(props, state) {
+                const inputComponent = riot.component(selectField)(document.querySelector(`#${state.inputContainerID}`), props);
+
+                this.update({
+                    inputComponent
+                });
+            },
+            getValue() {
+                const { inputComponent } = this.state;
+                if (inputComponent.isDisabled())
+                    return null;
+
+                return parseInt(inputComponent.getValue());
+            },
+            ...defaultSelectMethods
+        }
+    </script>
+
+</installmentSelect>

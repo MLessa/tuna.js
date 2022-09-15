@@ -1,0 +1,28 @@
+<document>
+    <div id={state.inputContainerID}></div>
+
+    <script>
+        import formatedTextField from './formattedTextField.riot';
+        import * as riot from 'riot';
+        import { defaultInputMethods } from '../util.js';
+
+        export default {
+            onMounted(props, state) {
+                const inputComponent = riot.component(formatedTextField)(document.querySelector(`#${state.inputContainerID}`),
+                    {
+                        pattern: props.buyerDocumentFormatter.pattern,
+                        ...props
+                    });
+
+                this.update({
+                    inputComponent
+                });
+            },
+            getValue() {
+                const { inputComponent } = this.state;
+                return inputComponent.getValue();
+            },
+            ...defaultInputMethods
+        }
+    </script>
+</document>

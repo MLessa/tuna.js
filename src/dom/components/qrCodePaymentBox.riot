@@ -1,0 +1,95 @@
+<qrCodePaymentBox>
+
+    <div class="tuna-pix-box">
+        <div class="tuna-qrcode-title" if={props.title}>{props.title}</div>
+
+        <div class="tuna-qrcode-container">
+            <div class="tuna-qrcode-sub-title" if={props.subtitle}>{props.subtitle}</div>
+            <div class="tuna-qrcode-block">
+                <div class="tuna-qrcode">
+                    <div class="tuna-qrcode-box">
+                        <img src={props.pixInfo ? props.pixInfo.qrImage : props.cryptoInfo.coinQRCodeUrl} width="200"
+                            height="200" alt="QR Code">
+                    </div>
+                    <div class="tuna-qrcode-copier">
+                        <div class="tuna-qrcode-copy">
+                            <input id="tuna_pixBox_qrCodeNumber" class="tuna-qrcode-input" type="text"
+                                value={props.pixInfo ? props.pixInfo.qrContent : props.cryptoInfo.coinAddr }
+                                onclick="this.setSelectionRange(0, this.value.length)" readonly </div>
+
+                            <div class="tuna-qrcode-action">
+                                <button class="defaultTunaButton" onclick={copyQrCodeToClipboard} tabindex="1">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" clip-rule="evenodd"
+                                            d="M16.1234 1.91016H5.12337C4.11504 1.91016 3.29004 2.73516 3.29004 3.74349V16.5768H5.12337V3.74349H16.1234V1.91016ZM18.8734 5.57677H8.79007C7.78173 5.57677 6.95673 6.40177 6.95673 7.4101V20.2434C6.95673 21.2518 7.78173 22.0768 8.79007 22.0768H18.8734C19.8817 22.0768 20.7067 21.2518 20.7067 20.2434V7.4101C20.7067 6.40177 19.8817 5.57677 18.8734 5.57677ZM8.79004 20.2435H18.8734V7.41016H8.79004V20.2435Z"
+                                            fill="#fff"></path>
+                                    </svg>
+                                    {props.copyCodeButtonText || 'Copy code'}
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tuna-qrcode-info">
+                    <ul class="tuna-qrcode-list">
+                        <li each="{ (instruction, index) in props.instructions }">
+                            <div class="tuna-info-bullet">{++index}</div>
+                            <span>{instruction}</span>
+                        </li>
+                    </ul>
+                    <div class="tuna-qrcode-value" if={props.cryptoInfo}>
+                        <div>Total:</div>
+                        <div class="tuna-qrcode-amount">
+                            <div>{this.getCryptoSymbol(props.cryptoInfo.coin)} {props.cryptoInfo.coinValue}</div>
+                            <span>{this.getCryptoSymbol(props.cryptoInfo.coin)} 1 = {this.formatCurrency(props.cryptoInfo.coinRateCurrency)}</span>
+                            <span>cotação expira em 10 minutos</span>
+                        </div>
+                    </div>
+
+                    <div class="tuna-pix-ready" if={props.showLoader}>
+                        <span>{props.loaderText || 'verifying payment...'}<span id="tuna_dot_loading">.</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            let dotLoadingInterval;
+            export default {
+                formatCurrency(coinRateCurrency) {
+                    return parseFloat(coinRateCurrency.replace(',','')).toLocaleString("pt-BR", { style: 'currency', currency: "BRL" });
+                },
+                getCryptoSymbol(coin) {
+                    switch (coin) {
+                        case "BTC":
+                            return "₿";
+                        default:
+                            return coin;
+                    }
+                },
+                copyQrCodeToClipboard() {
+                    var x = document.createElement("input");
+                    x.setAttribute("value", document.getElementById("tuna_pixBox_qrCodeNumber").value);
+                    document.body.appendChild(x);
+                    x.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(x);
+                },
+                onMounted(props, state) {
+                    let wait = this.$('#tuna_dot_loading');
+                    if (typeof dotLoadingInterval !== "undefined") {
+                        window.clearInterval(dotLoadingInterval);
+                    }
+                    dotLoadingInterval = window.setInterval(function () {
+                        if (wait.innerHTML.length > 2)
+                            wait.innerHTML = "";
+                        else
+                            wait.innerHTML += ".";
+                    }, 300);
+                }
+            }
+        </script>
+</qrCodePaymentBox>

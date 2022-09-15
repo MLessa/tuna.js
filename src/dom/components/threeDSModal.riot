@@ -1,0 +1,57 @@
+<threeDSModal>
+    <div class="tunaCheckBox">
+        <input class="modal-state" id="modal-1" type="checkbox" checked />
+    </div>
+    <div class="modal">
+        <label class="modal__bg" for="modal-1" onclick="{unmountOnClose}"></label>
+        <div class="modal__inner" style="{'width:'+state.frameWidth+'px;height:'+state.frameHeight+'px;'}">
+            <div>
+                <iframe name="step-up-iframe" height={state.frameHeight} width={state.frameWidth}></iframe>
+                <form id="step-up-form" target="step-up-iframe" method="POST" action={props.threeDSInfo.url}>
+                    <input type="hidden" name="JWT" value={props.threeDSInfo.token} />
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        export default {
+            onBeforeMount(props, state) {
+                state.threeDSFormID = `tdsf_${Math.random().toString(18).substring(2)}`;
+                let paReq = JSON.parse(atob(props.threeDSInfo.paRequest));
+
+                switch (paReq.challengeWindowSize) {
+                    case "01":
+                        state.frameWidth = "250";
+                        state.frameHeight = "400";
+                        break;
+                    case "02":
+                        state.frameWidth = "390";
+                        state.frameHeight = "400";
+                        break;
+                    case "03":
+                        state.frameWidth = "500";
+                        state.frameHeight = "600";
+                        break;
+                    case "04":
+                        state.frameWidth = "600";
+                        state.frameHeight = "400";
+                        break;
+                    default:
+                        state.frameWidth = "100%";
+                        state.frameHeight = "100%";
+                        break;
+                }
+            },
+            onMounted(props, state) {
+                var stepUpForm = document.querySelector("#step-up-form");
+                if (stepUpForm)
+                    stepUpForm.submit();
+            },
+            unmountOnClose() {
+                this.unmount();
+            }
+        }
+
+    </script>
+</threeDSModal>

@@ -1,0 +1,125 @@
+<savedCardSelector>
+    <div class="tunaCardContainer">
+        <div each={ card in state.itens } class="cardItem">
+            <div class="tunaRadioBox">
+                <input type="radio" id="{card.id}" name="savedCard_{state.cardSelectorID}" value={card.id}
+                    onchange={selectedCardChange} disabled={state.disabled}>
+            </div>
+            <label for="{card.id}" class="cardDataDiv">
+                <img src="{getCardBrandFlagURL(card.brand)}" class="tunaSavedCardBrand"
+                    onerror="this.src='https://js.tuna.uy/img/credit-card.svg'" />
+                <span class="cardLabel">
+                    <span class="cardName">{card.cardHolderName}</span>
+                    <span class="cardNumber">{card.maskedNumber}</span>
+                </span>
+            </label>
+            <div if={isCardSelected(card.id)} id="tuna_saved_card_cvv_{state.cardSelectorID}" class="tunaSavedCardCvv">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        export default {
+            onBeforeMount(props, state) {
+                let itens = [];
+                if (props.tokens)
+                    props.tokens.forEach(card => {
+                        let itemID = `sccard_${Math.random().toString(36).substring(7)}`;
+                        let cItem = { id: itemID, ...card };
+                        itens.push(cItem);
+                    });
+                state.itens = itens;
+                state.noneSelected = true;
+                state.value = {};
+                state.hasSavedCard = itens.length > 0;
+                state.disabled = props.disabled;
+                state.cardSelectorID = `ccardsel_${Math.random().toString(36).substring(7)}`;
+
+            },
+            onMounted() {
+                if (this.state.itens && this.state.itens.length > 0) {
+                    document.getElementById(`${this.state.itens[0].id}`).checked = true;
+                    this.selectedCardChange({ target: { value: `${this.state.itens[0].id}` } })
+                }
+            },
+            getCardBrandFlagURL(brand) {
+                brand = brand.toLowerCase();
+                return `https://js.tuna.uy/img/${brand}.svg`
+            },
+            selectedCardChange(e) {
+                let cardID = e.target.value;
+                let selectedCard = this.state.itens.find(card => card.id === cardID);
+                if (this.props.onSelectionBegins && typeof this.props.onSelectionBegins == "function"
+                    && this.state.noneSelected) {
+                    this.props.onSelectionBegins();
+                }
+                this.update({
+                    value: { ...selectedCard },
+                    noneSelected: false
+                });
+
+                if (this.state.cvvInput)
+                    this.props.pieceManager.destroy(this.state.cvvInput);
+
+                //Setting piece as embedded
+                const cvvPieceProps = this.props.cardCvv ?
+                    {
+                        isEmbedded: true,
+                        ...this.props.cardCvv
+                    } : {
+                        isEmbedded: true,
+                        showCVVImage: false,
+                        prefixImage: 'https://js.tuna.uy/img/card.svg',
+                        prefixmageClass: 'defaultTunaCVVImage'
+                    };
+
+                this.update({
+                    cvvInput: this.props.pieceManager.createPiece(`#tuna_saved_card_cvv_${this.state.cardSelectorID}`, "cardCvv", cvvPieceProps, "savedCardSelector")
+                });
+            },
+            isCardSelected(cardID) {
+                let selectedCard = this.state.itens.find(card => card.token === this.state.value.token);
+                if (!selectedCard)
+                    return false;
+                return selectedCard.id === cardID;
+            },
+            clear() {
+                if (this.state.itens && this.state.itens.length > 0) {
+                    this.state.itens.forEach(value => {
+                        if (document.getElementById(value.id))
+                            document.getElementById(value.id).checked = false
+                    });
+                }
+                if (this.state.cvvInput)
+                    this.props.pieceManager.destroy(this.state.cvvInput);
+
+                this.update({
+                    value: {},
+                    noneSelected: true,
+                    cvvInput: null
+                });
+            },
+            getValue() {
+                if (this.state.disabled)
+                    return null;
+                if (this.state.noneSelected)
+                    return null;
+
+                this.update({
+                    value: { ...this.state.value, cvv: this.state.cvvInput.getValue() }
+                });
+
+                let value = { ...this.state.value };
+                delete value.id;
+                return value;
+            },
+            setValue(value) {
+                this.state.value = value;
+            },
+            focus() {
+                $('html, body').animate({ scrollTop: $('.tunaCardContainer').offset().top }, 'slow');
+            }
+        }
+    </script>
+
+</savedCardSelector>
