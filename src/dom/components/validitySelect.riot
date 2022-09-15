@@ -1,0 +1,42 @@
+<validitySelect>
+
+    <div id={state.inputContainerID}></div>
+
+    <script>
+        import selectField from './selectField.riot';
+        import { defaultSelectMethods } from '../util.js';
+
+        import * as riot from 'riot';
+
+        export default {
+            onMounted(props, state) {
+                let options = [];
+                if (props.fieldDataType == "month") {
+                    for (let i = 1; i <= 12; i++) {
+                        const value = (i + "").padStart(2, '0');
+                        options.push({ key: value, value });
+                    }
+                } else {
+                    for (let i = new Date().getFullYear(); i <= new Date().getFullYear() + 12; i++) {
+                        options.push({ key: i, value: i });
+                    }
+                }
+
+                const inputComponent = riot.component(selectField)(document.querySelector(`#${state.inputContainerID}`), { options, ...props });
+
+                this.update({
+                    inputComponent
+                });
+            },
+            getValue() {
+                const { inputComponent } = this.state;
+                if (inputComponent.isDisabled())
+                    return null;
+
+                return parseInt(inputComponent.getValue());
+            },
+            ...defaultSelectMethods
+        }
+    </script>
+
+</validitySelect>

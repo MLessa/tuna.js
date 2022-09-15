@@ -1,0 +1,73 @@
+{
+  "name": "tuna-gateway",
+  "version": "2.0",
+  "main": "./src/tuna.js",
+  "exports": {
+    ".": "./src/tuna.js",
+    "./essentials": "./src/essentials.js"
+  },
+  "jest": {
+    "automock": false,
+    "setupFiles": [
+      "./src/tests/setup.js"
+    ]
+  },
+  "typesVersions": {
+    "*": {
+      ".": [
+        "./src/tuna.d.ts"
+      ],
+      "essentials": [
+        "./src/essentials.d.ts"
+      ]
+    }
+  },
+  "types": "./src/tuna.d.ts",
+  "module": "./src/tuna.js",
+  "license": "MIT",
+  "type": "module",
+  "devDependencies": {
+    "@babel/cli": "^7.14.8",
+    "@babel/core": "^7.16.0",
+    "@babel/plugin-transform-runtime": "^7.16.4",
+    "@babel/preset-env": "^7.16.4",
+    "@riotjs/compiler": "^4.9.3",
+    "@riotjs/hot-reload": "^4.0.1",
+    "@riotjs/webpack-loader": "^4.0.3",
+    "babel-jest": "^27.4.4",
+    "babel-loader": "^8.1.0",
+    "babel-preset-es2015-riot": "^1.1.0",
+    "jest": "^27.4.4",
+    "riot-hot-reload": "^1.0.0",
+    "riot-tag-loader": "^2.1.0",
+    "typescript": "^4.4.3",
+    "uglifycss": "0.0.29",
+    "webpack": "^5.57.0",
+    "webpack-cli": "^4.9.1",
+    "jest-fetch-mock": "^3.0.3"
+  },
+  "dependencies": {
+    "card-validator": "^8.0.0",
+    "core-js": "^3.19.3",
+    "riot": "^4.13.4"
+  },
+  "scripts": {
+    "test": "jest",
+    "generateTypes": "npx tsc",
+    "tunaLib": "webpack --config webpack.config.js",
+    "bundlecss": "uglifycss --ugly-comments --output bundles/components.min.css ./src/dom/components.css",
+    "bundleTuna": "yarn tunaLib --mode=production --no-cache --progress",
+    "bundleTunaAPI": "yarn tunaLib --mode=production --no-cache --progress --env essentials",
+    "bundle": "yarn test && yarn bundleTunaAPI && yarn bundleTuna",
+    "debug": "yarn test && yarn bundlecss && yarn tunaLib --mode=development --watch"
+  },
+  "description": "TUNA Javascript Library.",
+  "directories": {
+    "example": "example"
+  },
+  "repository": {
+    "type": "git",
+    "url": "none"
+  },
+  "author": "Tuna Software Inc"
+}

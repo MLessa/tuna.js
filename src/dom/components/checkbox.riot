@@ -1,0 +1,39 @@
+<checkBox>
+    <div class="tunaCheckbox">
+        <input id={state.id} type="checkbox" class={props.inputClass || 'defaultTunaInputCheck' } disabled={state.disabled}
+            onchange="{inputChange}" />
+        <label if={props.title} class={props.titleClass || 'defaultTunaLabel' } for={state.id}>{props.title}</label>
+    </div>
+    <script>
+        export default {
+            onBeforeMount(props, state) {
+                state.id = props.inputID || props.id;
+                state.disabled = props.disabled;
+            },
+            onMounted(props, state) {
+                document.getElementById(state.id).checked = props.checked ?? true;
+                this.update({
+                    value: props.checked ?? true
+                });
+            },
+            inputChange(e) {
+                const checked = e.target.checked;
+                document.getElementById(this.state.id).checked = checked;
+                this.update({
+                    value: checked
+                });
+            },
+            focus() {
+                document.getElementById(this.state.id).focus();
+            },
+            getValue() {
+                if (this.state.disabled)
+                    return null;
+                return this.state.value;
+            },
+            setValue(value) {
+                this.state.value = value;
+            }
+        }
+    </script>
+</checkBox>

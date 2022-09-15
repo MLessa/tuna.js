@@ -1,0 +1,48 @@
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH == "dev"
+
+variables:
+  GIT_SSL_NO_VERIFY: "1"
+
+stages:
+ - build
+ - commit
+
+build:
+ image: node:latest
+ stage: build
+ before_script:
+  - 'yarn add webpack'
+ script:
+  - 'yarn bundle'
+ artifacts:
+  expire_in: 1 hour
+  paths:
+   - bundles/
+
+commit:
+ image: python:3.6
+ stage: commit
+ before_script:
+ - 'which ssh-agent || ( apt-get update -qy && apt-get install openssh-client -qqy )'
+ - eval `ssh-agent -s`
+ - echo "${SSH_PRIVATE_KEY}" | tr -d '\r' | ssh-add - > /dev/null # add ssh key
+ - mkdir -p ~/.ssh
+ - chmod 700 ~/.ssh
+ - echo "$SSH_PUBLIC_KEY" >> ~/.ssh/id_rsa.pub
+ - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+ script:
+  - git config --global user.email "${CI_EMAIL}" && git config --global user.name "${CI_USERNAME}"
+  - git clone git@gitlab.dev.tuna.awc:dev-deploy/static-files.git  
+  - git -C static-files/ rm -rf plugin/*.js 
+  - git -C static-files/ clean -fxd  plugin
+  - cp -Ri bundles/*.js static-files/plugin
+  - cd static-files/plugin
+  - git add .
+  - git commit -m "Initiated from pipeline:$CI_PIPELINE_URL | Commit SHA:$CI_COMMIT_SHA" && echo "files were commited" || (echo "nothing to commit" && exit 0)
+  - git push
+ needs:
+  - job: build
+    artifacts: true
+

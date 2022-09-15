@@ -1,0 +1,62 @@
+<validity>
+
+    <div id={state.inputContainerID}></div>
+
+    <script>
+        import formatedTextField from './formattedTextField.riot';
+        import * as riot from 'riot';
+        import { defaultInputMethods } from '../util.js';
+
+        import ErrorHandler from "../../support/errorHandler.js";
+
+
+        export default {
+            onMounted(props, state) {
+                const inputComponent = riot.component(formatedTextField)(document.querySelector(`#${state.inputContainerID}`), {
+                    pattern: ['99/99', '99/9999'],
+                    ...props
+                });
+
+                this.update({
+                    inputComponent
+                });
+            },
+            getValue() {
+                const { inputComponent } = this.state;
+                if (inputComponent.isDisabled())
+                    return null;
+
+                let dateString = inputComponent.getValue();
+                try {
+                    let splittedDateString = dateString.split("/");
+                    let expirationMonth = splittedDateString[0];
+                    let expirationYear = splittedDateString[1];
+
+                    if (expirationYear.length < 2)
+                        throw new TunaErrorHandler("ERR:07", { fieldNames: "cardValidity" });
+
+                    expirationMonth = parseInt(expirationMonth);
+                    expirationYear = parseInt(expirationYear);
+
+                    if (expirationYear <= 99)
+                        expirationYear += 2000; // TODO - Review this next to 2099'
+
+                    // getting the last day of the typed date in order to check if the card is already valid
+                    let validityDate = new Date(new Date(expirationYear, expirationMonth).setDate(new Date(expirationYear, expirationMonth).getDate() - 1));
+                    validityDate.setHours(23, 59, 59, 999);
+
+                    if (validityDate < new Date())
+                        throw new ErrorHandler("ERR:07", { fieldNames: "cardValidity" });
+
+                    return {
+                        expirationMonth,
+                        expirationYear
+                    }
+                } catch {
+                    throw new ErrorHandler("ERR:07", { fieldNames: "cardValidity" });
+                }
+            },
+            ...defaultInputMethods
+        }
+    </script>
+</validity>

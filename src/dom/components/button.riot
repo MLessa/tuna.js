@@ -1,0 +1,38 @@
+<tunaBtn>
+
+    <button id={props.id} href="#" onclick={onBtnClick} type="button" disabled={state.disabled} class={props.buttonClass
+        || 'defaultTunaButton' }>
+        {props.title || 'Pay'}
+        <i if={props.showIcon} class={props.iconClass || 'defaultTunaIcon' }></i>
+    </button>
+
+    <script>
+        export default {
+            onBeforeMount(props, state) {
+                state.id = props.inputID || props.id;
+                state.disabled = false;
+                if (props.onclick)
+                    state.onclick = props.onclick;
+            },
+            changeEnableStatus(enabled) {
+                this.update({
+                    disabled: !enabled
+                });
+
+                let showSpinnerWhileDisabled = this.props.showSpinnerWhileDisabled || true;
+
+                if (!enabled && showSpinnerWhileDisabled) {
+                    $(`#${this.state.id}`).addClass("disabledSpinner");
+                } else
+                    $(`#${this.state.id}`).removeClass("disabledSpinner");
+            },
+            onBtnClick(event) {
+                if (!this.state.disabled) {
+                    if (!event.detail || event.detail == 1) {
+                        this.state.onclick();
+                    }
+                }
+            }
+        }
+    </script>
+</tunaBtn>

@@ -1,0 +1,8 @@
+webpack_entries/
+example/
+bundles/
+.vscode/
+webpack.config.js
+yarn-error.log
+.gitlab-ci.yml
+.gitignore

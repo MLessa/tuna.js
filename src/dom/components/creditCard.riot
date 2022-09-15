@@ -1,0 +1,60 @@
+<creditCard>
+
+    <div id={state.inputContainerID}></div>
+
+    <script>
+        import formatedTextField from './formattedTextField.riot';
+        import * as riot from 'riot';
+        import cardValidator from "card-validator";
+        import { defaultInputMethods } from '../util.js';
+        import ErrorHandler from "../../support/errorHandler.js";
+
+        const cardBrandFlagURL = "https://js.tuna.uy/img/{0}.svg";
+        const genericCardFlag = "https://js.tuna.uy/img/credit-card.svg";
+
+        export default {
+            onMounted(props, state) {
+                let showCardBrand = props.showCardBrand;
+                if (showCardBrand === undefined)
+                    showCardBrand = true;
+
+                const inputComponent = riot.component(formatedTextField)(document.querySelector(`#${state.inputContainerID}`),
+                    {
+                        pattern: ['9999 999999 9999', '9999 999999 99999', '9999 9999 9999 9999'],
+                        suffixImage: showCardBrand ? 'https://js.tuna.uy/img/credit-card.svg' : '',
+                        suffixImageClass: 'defaultTunaCardBrand',
+                        oninput: e => {
+                            if (showCardBrand) {
+                                const value = e.target.value;
+                                const cardValidation = cardValidator.number(e.target.value);
+                                const cardType = cardValidation.card ? cardValidation.card.type : "";
+                                this.state.inputComponent.updateSuffix("image", cardType ? cardBrandFlagURL.replace("{0}", cardType.toLowerCase()) : genericCardFlag);
+                            }
+                            if (props.oninput)
+                                props.oninput(e);
+                        },
+                        ...props
+                    });
+
+                this.update({
+                    cardBrandFlag: "https://js.tuna.uy/img/credit-card.svg",
+                    inputComponent
+                });
+            },
+            getValue() {
+                const { inputComponent } = this.state;
+
+                if (inputComponent.isDisabled())
+                    return null;
+
+                const value = inputComponent.getValue();
+
+                if (!value || (!cardValidator.number(value).isPotentiallyValid && value[0] != '0'))
+                    throw new ErrorHandler("ERR:07", { fieldNames: "cardNumber" });
+
+                return value;
+            },
+            ...defaultInputMethods
+        }
+    </script>
+</creditCard>
