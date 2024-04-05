@@ -1,5 +1,5 @@
 
-# Tuna.js Library
+# Tuna.js V2 Library
 
 The Tuna JavaScript library allow you to build a secure payment form, tokenize sensitive custumer card's information and accept payments rigth on your website or using your backend.
 
